@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
+import Dashboard from "./Dashboard";
 
 function Tickets({ role }) {
   const [tickets, setTickets] = useState([]);
@@ -7,6 +8,8 @@ function Tickets({ role }) {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
   async function loadTickets() {
     const { data, error } = await supabase
@@ -49,8 +52,16 @@ function Tickets({ role }) {
 
   const isAgent = role === "agent";
 
+  const visibleTickets = tickets.filter(
+    (t) =>
+      (statusFilter === "all" || t.status === statusFilter) &&
+      (priorityFilter === "all" || t.priority === priorityFilter)
+  );
+
   return (
     <div>
+      <Dashboard tickets={tickets} />
+
       <h2>New ticket</h2>
       <form onSubmit={handleSubmit}>
         <input
@@ -74,9 +85,34 @@ function Tickets({ role }) {
       {error && <p>{error}</p>}
 
       <h2>{isAgent ? "All tickets" : "My tickets"}</h2>
-      {tickets.length === 0 && <p>No tickets yet.</p>}
+
+      <div className="filters">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">All statuses</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+        </select>
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+        >
+          <option value="all">All priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <p>
+        Showing {visibleTickets.length} of {tickets.length} tickets
+      </p>
+
+      {visibleTickets.length === 0 && <p>No tickets match.</p>}
       <ul>
-        {tickets.map((t) => (
+        {visibleTickets.map((t) => (
           <li key={t.id}>
             <strong>{t.title}</strong> [{t.priority}]
             {isAgent && <span> from {t.profiles?.email}</span>}
