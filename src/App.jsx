@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import Auth from "./Auth";
+import Tickets from "./Tickets";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -26,6 +27,7 @@ function App() {
       <h1>Helpdesk Ticketing</h1>
       <p>Signed in as {session.user.email}</p>
       <button onClick={() => supabase.auth.signOut()}>Sign out</button>
+      <Tickets />
     </div>
   );
 }
