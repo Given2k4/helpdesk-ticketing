@@ -5,6 +5,7 @@ import Tickets from "./Tickets";
 
 function App() {
   const [session, setSession] = useState(null);
+  const [role, setRole] = useState("user");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -20,14 +21,28 @@ function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setRole(data.role);
+      });
+  }, [session]);
+
   if (!session) return <Auth />;
 
   return (
     <div>
       <h1>Helpdesk Ticketing</h1>
-      <p>Signed in as {session.user.email}</p>
+      <p>
+        Signed in as {session.user.email} ({role})
+      </p>
       <button onClick={() => supabase.auth.signOut()}>Sign out</button>
-      <Tickets />
+      <Tickets key={role} role={role} />
     </div>
   );
 }
