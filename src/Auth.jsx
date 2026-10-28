@@ -6,34 +6,54 @@ function Auth() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
+  async function handleSignIn(e) {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) setMessage(error.message);
+  }
+
   async function handleSignUp() {
     const { error } = await supabase.auth.signUp({ email, password });
     setMessage(error ? error.message : "Account created. You are signed in.");
   }
 
-  async function handleSignIn() {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setMessage(error.message);
-  }
-
   return (
-    <div>
-      <h2>Sign in</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password (6+ characters)"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button onClick={handleSignIn}>Sign in</button>
-      <button onClick={handleSignUp}>Sign up</button>
-      <p>{message}</p>
+    <div className="auth-wrap">
+      <form className="auth-card" onSubmit={handleSignIn}>
+        <h1>Helpdesk</h1>
+        <p className="muted">Sign in to report a problem or work the queue.</p>
+        <label>
+          Email
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="At least 6 characters"
+            required
+          />
+        </label>
+        <div className="auth-actions">
+          <button className="primary" type="submit">
+            Sign in
+          </button>
+          <button className="ghost" type="button" onClick={handleSignUp}>
+            Create account
+          </button>
+        </div>
+        {message && <p className="auth-message">{message}</p>}
+      </form>
     </div>
   );
 }

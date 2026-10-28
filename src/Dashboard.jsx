@@ -2,25 +2,61 @@ function Dashboard({ tickets }) {
   const count = (field, value) =>
     tickets.filter((t) => t[field] === value).length;
 
-  const stats = [
-    { label: "Total", value: tickets.length },
-    { label: "Open", value: count("status", "open") },
-    { label: "In Progress", value: count("status", "in_progress") },
-    { label: "Resolved", value: count("status", "resolved") },
-    { label: "High priority", value: count("priority", "high") },
-    { label: "Medium priority", value: count("priority", "medium") },
-    { label: "Low priority", value: count("priority", "low") },
+  const total = tickets.length;
+
+  const statuses = [
+    { key: "open", label: "open", color: "var(--open)" },
+    { key: "in_progress", label: "in progress", color: "var(--progress)" },
+    { key: "resolved", label: "resolved", color: "var(--resolved)" },
+  ];
+
+  const priorities = [
+    { key: "high", label: "high", color: "var(--high)" },
+    { key: "medium", label: "medium", color: "var(--medium)" },
+    { key: "low", label: "low", color: "var(--low)" },
   ];
 
   return (
-    <div className="stats">
-      {stats.map((s) => (
-        <div className="stat-card" key={s.label}>
-          <div className="stat-value">{s.value}</div>
-          <div className="stat-label">{s.label}</div>
+    <section className="overview">
+      <div className="overview-head">
+        <div>
+          <div className="total">{total}</div>
+          <div className="muted">
+            {total === 1 ? "ticket" : "tickets"} in total
+          </div>
         </div>
-      ))}
-    </div>
+        <div className="priority-list">
+          {priorities.map((p) => (
+            <span key={p.key}>
+              <span className="dot" style={{ background: p.color }} />
+              {count("priority", p.key)} {p.label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="workload" aria-label="Tickets by status">
+        {statuses.map((s) => {
+          const n = count("status", s.key);
+          return n > 0 ? (
+            <div
+              key={s.key}
+              style={{ flex: n, background: s.color }}
+              title={`${n} ${s.label}`}
+            />
+          ) : null;
+        })}
+      </div>
+
+      <div className="legend">
+        {statuses.map((s) => (
+          <span key={s.key}>
+            <span className="dot" style={{ background: s.color }} />
+            {count("status", s.key)} {s.label}
+          </span>
+        ))}
+      </div>
+    </section>
   );
 }
 

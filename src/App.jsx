@@ -5,7 +5,7 @@ import Tickets from "./Tickets";
 
 function App() {
   const [session, setSession] = useState(null);
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -15,6 +15,7 @@ function App() {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
+        if (!newSession) setRole(null);
       }
     );
 
@@ -23,25 +24,35 @@ function App() {
 
   useEffect(() => {
     if (!session) return;
+    setRole(null);
     supabase
       .from("profiles")
       .select("role")
       .eq("id", session.user.id)
       .single()
       .then(({ data }) => {
-        if (data) setRole(data.role);
+        setRole(data?.role ?? "user");
       });
   }, [session]);
 
   if (!session) return <Auth />;
 
+  if (!role) {
+    return <p className="muted" style={{ padding: 24 }}>Loading...</p>;
+  }
+
   return (
-    <div>
-      <h1>Helpdesk Ticketing</h1>
-      <p>
-        Signed in as {session.user.email} ({role})
-      </p>
-      <button onClick={() => supabase.auth.signOut()}>Sign out</button>
+    <div className="shell">
+      <header className="topbar">
+        <h1>Helpdesk</h1>
+        <div className="user">
+          <span className="email">{session.user.email}</span>
+          <span className={`role role-${role}`}>{role}</span>
+          <button className="ghost" onClick={() => supabase.auth.signOut()}>
+            Sign out
+          </button>
+        </div>
+      </header>
       <Tickets key={role} role={role} />
     </div>
   );
